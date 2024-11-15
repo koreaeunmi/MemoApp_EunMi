@@ -20,11 +20,16 @@ class MemoListTableViewController: UITableViewController {
         return formatter
     }()
     
-    override func viewWillAppear(_ animated: Bool) {
-        super.viewWillAppear(animated)
-        tableView.reloadData()
-        print(#function)
+    //modi2
+    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
+        if let cell = sender as? UITableViewCell, let indexPath = tableView.indexPath(for: cell){
+            if let vc = segue.destination as? DetailViewController{
+                vc.memo = DataManager.shared.memoList[indexPath.row]
+            }
+        }
     }
+    
+    
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -35,14 +40,32 @@ class MemoListTableViewController: UITableViewController {
                 notificationCenter.delegate = self
             }
         }
+        
+        //modi4-3
+        NotificationCenter.default.addObserver(forName: NewMemoViewController.newMemo_Insert, object: nil, queue: OperationQueue.main){[weak self] _ in
+            self?.tableView.reloadData()
+        }
+        //modi
+        //tableView.reloadData()
     }
+    
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        //mmodi
+        DataManager.shared.readMemo()
+        tableView.reloadData()
+        print(#function)
+    }
+    
+    
 
     // MARK: - Table view data source
 
-    override func numberOfSections(in tableView: UITableView) -> Int {
-        // #warning Incomplete implementation, return the number of sections
-        return 1
-    }
+    //modei:comment
+//    override func numberOfSections(in tableView: UITableView) -> Int {
+//        // #warning Incomplete implementation, return the number of sections
+//        return 1
+//    }
 
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         // #warning Incomplete implementation, return the number of rows
@@ -55,7 +78,7 @@ class MemoListTableViewController: UITableViewController {
 
         let target = DataManager.shared.memoList[indexPath.row]
         cell.textLabel?.text = target.content
-        cell.detailTextLabel?.text = formatter.string(from: target.insertDate!)
+        cell.detailTextLabel?.text = formatter.string(for: target.insertDate)
 
         return cell
     }

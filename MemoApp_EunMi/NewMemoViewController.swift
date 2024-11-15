@@ -9,6 +9,8 @@ import UIKit
 
 class NewMemoViewController: UIViewController {
 
+    var editTarget:Memo?
+    
     @IBAction func cancel(_ sender: Any) {
         dismiss(animated: true, completion: nil)
     }
@@ -32,31 +34,21 @@ class NewMemoViewController: UIViewController {
         //add requestion
         notificationCenter.add(request, withCompletionHandler: nil)
         
-        //calendarnotificationtrigger
-//        var dateComponents = DateComponents()
-//        dateComponents.calendar = Calendar.current
-//        
-//        dateComponents.weekday = 4 //Tuesday
-//        dateComponents.hour = 11
-//        
-//        let trigger = UNCalendarNotificationTrigger(dateMatching: dateComponents, repeats:true)
-//        
-//        let uuidString = UUID().uuidString
-//        let request = UNNotificationRequest(identifier:uuidString, content: content, trigger: trigger)
-//        
-//        notificationCenter.add(request){(error) in
-//            if error != nil{
-//                //handle any errors
-//            }
-//        }
-        
         guard let memo = memoTextView.text, memo.count > 0 else{
             alert(message: "There are no text");
             return
         }
 //        let newMemo = Memo(content: memo)
 //        Memo.dummyMemoList.append(newMemo)
-        DataManager.shared.saveMemo(memo)
+        
+        if let target = editTarget{
+            target.content = memo
+            DataManager.shared.saveContext()
+            NotificationCenter.default.post(name: NewMemoViewController.memo_Change, object: self)
+        }else{
+            DataManager.shared.saveMemo(memo)
+            NotificationCenter.default.post(name: NewMemoViewController.newMemo_Insert, object: self)
+        }
         
         dismiss(animated: true, completion: nil)
     }
@@ -65,48 +57,19 @@ class NewMemoViewController: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        print("1.viewDidLoad")
-        print("===================")
-        // Do any additional setup after loading the view.
+        
+        if let memo = editTarget{
+            navigationItem.title = "Edit Memo"
+            memoTextView.text = memo.content
+        }else{
+            navigationItem.title = "New Memo"
+            memoTextView.text = ""
+        }
     }
     
-    override func viewWillAppear(_ animated: Bool) {
-        super.viewWillAppear(animated)
-        print("2.viewWillAppear")
-        print("===================")
-    }
-    
-    override func viewDidAppear(_ animated: Bool) {
-        super.viewDidAppear(animated)
-        print("3.viewDidAppear")
-        print("===================")
-    }
-    
-    override func viewWillDisappear(_ animated: Bool) {
-        super.viewWillDisappear(animated)
-        print("4.viewDidAppear")
-        print("===================")
-    }
-    
-    override func viewDidDisappear(_ animated: Bool) {
-        super.viewDidDisappear(animated)
-        print("5.viewDidDisappear")
-        print("===================")
-    }
-    
-    
-    
-    
-    
-    
-    /*
-    // MARK: - Navigation
+}
 
-    // In a storyboard-based application, you will often want to do a little preparation before navigation
-    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
-        // Get the new view controller using segue.destination.
-        // Pass the selected object to the new view controller.
-    }
-    */
-
+extension NewMemoViewController{
+    static let newMemo_Insert = Notification.Name(rawValue:"newValue_Insert")
+    static let memo_Change = Notification.Name(rawValue:"memo_Change")
 }

@@ -9,12 +9,43 @@ import UIKit
 
 class DetailViewController: UIViewController {
 
-    override func viewDidLoad() {
-        super.viewDidLoad()
-
-        // Do any additional setup after loading the view.
+    
+    @IBOutlet weak var memoTableView: UITableView!
+    
+    var memo:Memo?
+    
+    let formatter : DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "MM-dd-yyyy HH"
+        formatter.dateStyle = .long
+        formatter.timeStyle = .long
+        formatter.locale = Locale(identifier: "en_US")
+        
+        return formatter
+    }()
+    
+    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
+        if let vc = segue.destination.children.first as? NewMemoViewController{
+            vc.editTarget = memo
+        }
     }
     
+    var token:NSObjectProtocol?
+    
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        
+        NotificationCenter.default.addObserver(forName: NewMemoViewController.memo_Change, object: nil, queue: OperationQueue.main){[weak self] _ in
+            self?.memoTableView.reloadData()
+        }
+        
+    }
+    
+    deinit{
+        if let tokenRemove = token{
+            NotificationCenter.default.removeObserver(tokenRemove)
+        }
+    }
 
     /*
     // MARK: - Navigation
@@ -39,12 +70,16 @@ extension DetailViewController:UITableViewDataSource{
             let cell1 = tableView.dequeueReusableCell(withIdentifier: "MemoCell", for: indexPath)
             print("MemoCell row\(indexPath.row)")
             print("MemoCell section\(indexPath.section)")
+            //modi3
+            cell1.textLabel?.text = memo?.content
             
             return cell1
         case 1:
             let cell2 = tableView.dequeueReusableCell(withIdentifier: "DateCell", for: indexPath)
             print("MemoCell row\(indexPath.row)")
             print("MemoCell section\(indexPath.section)")
+            //modi4
+            cell2.textLabel?.text = formatter.string(for: memo?.insertDate)
             
             return cell2
         default:
